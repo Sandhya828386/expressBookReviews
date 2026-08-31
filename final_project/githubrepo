@@ -1,0 +1,8 @@
+curl -s https://api.github.com/repos/Sandhya828386/expressBookReviews | grep -E '"full_name"|"fork"|"parent"'
+  "full_name": "Sandhya828386/expressBookReviews",
+  "fork": true,
+  "parent": {
+    "full_name": "ibm-developer-skills-network/expressBookReviews",
+    "fork": false,
+    "full_name": "ibm-developer-skills-network/expressBookReviews",
+    "fork": false,
