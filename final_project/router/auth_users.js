@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+
 let books = require('./booksdb.js');
 
 const regd_users = express.Router();
@@ -85,6 +86,52 @@ regd_users.put('/auth/review/:isbn', (req, res) => {
 
     return res.status(200).json({
       message: 'Review added successfully',
+      reviews: books[isbn].reviews
+    });
+  } catch (error) {
+    return res.status(401).json({
+      message: 'Invalid or expired token'
+    });
+  }
+});
+
+
+// Delete a book review
+regd_users.delete('/auth/review/:isbn', (req, res) => {
+  const isbn = req.params.isbn;
+
+  if (!books[isbn]) {
+    return res.status(404).json({
+      message: 'Book not found'
+    });
+  }
+
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({
+      message: 'Authorization token required'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token.replace('Bearer ', ''),
+      'fingerprint_customer'
+    );
+
+    const username = decoded.username;
+
+    if (!books[isbn].reviews[username]) {
+      return res.status(404).json({
+        message: 'Review not found'
+      });
+    }
+
+    delete books[isbn].reviews[username];
+
+    return res.status(200).json({
+      message: 'Review deleted successfully',
       reviews: books[isbn].reviews
     });
   } catch (error) {
