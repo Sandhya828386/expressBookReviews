@@ -1,7 +1,7 @@
 const express = require('express');
+const axios = require('axios');
 
 let books = require('./booksdb.js');
-
 let isValid = require('./auth_users.js').isValid;
 let users = require('./auth_users.js').users;
 
@@ -35,59 +35,101 @@ public_users.post('/register', (req, res) => {
 });
 
 
-// Get the book list available in the shop
-public_users.get('/', function (req, res) {
+// Get all books using Axios and async/await
+public_users.get('/', async function (req, res) {
+  try {
+    const response = await axios.get('http://localhost:5000/books');
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error retrieving books'
+    });
+  }
+});
+
+
+// Internal endpoint used by Axios to retrieve the books
+public_users.get('/books', function (req, res) {
   res.json(books);
 });
 
 
-// Get book details based on ISBN
+// Get book details based on ISBN using Axios Promise
 public_users.get('/isbn/:isbn', function (req, res) {
   const isbn = req.params.isbn;
 
-  if (books[isbn]) {
-    return res.json(books[isbn]);
-  }
+  axios
+    .get('http://localhost:5000/books')
+    .then((response) => {
+      const book = response.data[isbn];
 
-  return res.status(404).json({
-    message: 'Book not found'
-  });
+      if (book) {
+        res.json(book);
+      } else {
+        res.status(404).json({
+          message: 'Book not found'
+        });
+      }
+    })
+    .catch(() => {
+      res.status(500).json({
+        message: 'Error retrieving book'
+      });
+    });
 });
 
 
-// Get book details based on author
+// Get books based on author using Axios Promise
 public_users.get('/author/:author', function (req, res) {
   const author = req.params.author;
 
-  const result = Object.values(books).filter(
-    (book) => book.author.toLowerCase() === author.toLowerCase()
-  );
+  axios
+    .get('http://localhost:5000/books')
+    .then((response) => {
+      const result = Object.values(response.data).filter(
+        (book) => book.author.toLowerCase() === author.toLowerCase()
+      );
 
-  if (result.length > 0) {
-    return res.json(result);
-  }
-
-  return res.status(404).json({
-    message: 'No books found for this author'
-  });
+      if (result.length > 0) {
+        res.json(result);
+      } else {
+        res.status(404).json({
+          message: 'No books found for this author'
+        });
+      }
+    })
+    .catch(() => {
+      res.status(500).json({
+        message: 'Error retrieving books'
+      });
+    });
 });
 
 
-// Get all books based on title
+// Get books based on title using Axios Promise
 public_users.get('/title/:title', function (req, res) {
   const title = req.params.title;
 
-  const result = Object.values(books).filter(
-    (book) => book.title.toLowerCase() === title.toLowerCase()
-  );
+  axios
+    .get('http://localhost:5000/books')
+    .then((response) => {
+      const result = Object.values(response.data).filter(
+        (book) => book.title.toLowerCase() === title.toLowerCase()
+      );
 
-  if (result.length > 0) {
-    return res.json(result);
-  }
-
-  return res.status(404).json({
-    message: 'No books found for this title'
-  });
+      if (result.length > 0) {
+        res.json(result);
+      } else {
+        res.status(404).json({
+          message: 'No books found for this title'
+        });
+      }
+    })
+    .catch(() => {
+      res.status(500).json({
+        message: 'Error retrieving books'
+      });
+    });
 });
 
 
